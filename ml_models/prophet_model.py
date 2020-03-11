@@ -7,9 +7,9 @@ from .model_template import ModelTemplate
 
 
 def fetch_and_process_data(client, context):
-    assert all(x in context for x in ['point_id', 'start', 'end', 'prediction_param'])  # unit_id is optional
-    prediction_param = context.pop('prediction_param')
-    data = client.get_all(**context)
+    prediction_param = context['prediction_param']
+    client_context = {k: v for k, v in context.items() if k in ['point_id', 'start', 'end']}
+    data = client.get_all(**client_context)
     df = pd.DataFrame(data['samplings']).T[[prediction_param]]
     df.index = pd.to_datetime(df.index, unit='s')
     df = df.sort_index().astype(float)

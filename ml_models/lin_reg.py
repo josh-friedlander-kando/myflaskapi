@@ -7,15 +7,15 @@ from .model_template import ModelTemplate
 
 
 class LinRegTemplate(ModelTemplate, ABC):
-    def __init__(self, request):
-        self.X = np.array(request.json["X"])
-        self.y = np.dot(self.X, np.array(request.json["Y"])) + 3
+    def __init__(self):
+        self.client = None  # instead of super().__init__() - since we don't need a client
+        self.model = LinearRegression()
 
-    def train(self):
-        model = LinearRegression()
-        model.fit(self.X, self.y)
-        return model
+    def do_train(self, client, context):
+        x = np.array(context["X"])
+        y = np.dot(x, np.array(context["Y"])) + 3
+        self.model.fit(x, y)
+        print('finished fitting model')
 
-    def do_predict(self, model, request):
-        pred = model.predict(np.array(request.json["X_test"]))
-        return pred
+    def do_predict(self, context):
+        return self.model.predict(np.array(context["X_test"])).tolist()
