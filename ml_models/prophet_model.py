@@ -10,6 +10,10 @@ def fetch_and_process_data(client, context):
     prediction_param = context['prediction_param']
     client_context = {k: v for k, v in context.items() if k in ['point_id', 'start', 'end']}
     data = client.get_all(**client_context)
+    if len(data['samplings']) == 0:
+        print(f'No data found at point {context["point_id"]}')
+        return None
+    # TODO if model not fit bc of missing data, pass this on to predict method
     df = pd.DataFrame(data['samplings']).T[[prediction_param]]
     df.index = pd.to_datetime(df.index, unit='s')
     df = df.sort_index().astype(float)
@@ -23,8 +27,10 @@ class ProphetTemplate(ModelTemplate, ABC):
         self.model = Prophet(yearly_seasonality=False, weekly_seasonality=True, daily_seasonality=True)
 
     def do_train(self, client, context):
-        self.model.fit(fetch_and_process_data(client, context))
-        print('finished fitting model')
+        data = fetch_and_process_data(client, context)
+        if data is not None:
+            self.model.fit(data)
+            print('finished fitting model')
 
     def do_predict(self, context):
         future = self.model.make_future_dataframe(periods=12 * context['pred_hours'], freq='5min')
