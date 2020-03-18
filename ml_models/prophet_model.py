@@ -1,9 +1,16 @@
+import os
+import pickle
 from abc import ABC
+from dotenv import load_dotenv
+from kando import kando_client
 
 import pandas as pd
 from fbprophet import Prophet
+from fbprophet.diagnostics import performance_metrics, cross_validation
 
-from .model_template import ModelTemplate
+from model_template import ModelTemplate
+
+export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd()))
 
 
 def fetch_and_process_data(client, context):
@@ -21,6 +28,13 @@ def fetch_and_process_data(client, context):
     return df.reset_index().rename(columns={'index': 'ds', prediction_param: 'y'}).copy()
 
 
+def save_model(model):
+    print('saving model')
+    model.model.stan_backend.logger = None  # https://github.com/facebook/prophet/issues/1361 (!!)
+    with open(export_dir + '/model.pkl', 'wb+') as f:
+        pickle.dump(model, f)
+
+
 class ProphetTemplate(ModelTemplate, ABC):
     def __init__(self):
         super().__init__()
@@ -31,6 +45,9 @@ class ProphetTemplate(ModelTemplate, ABC):
         if data is not None:
             self.model.fit(data)
             print('finished fitting model')
+        df_cv = cross_validation(self.model, period='180 days', initial='112 days', horizon='12H')
+        metadata = performance_metrics(df_cv)
+        metadata.to_json(export_dir + '/gradient-model-metadata.json')
 
     def do_predict(self, context):
         future = self.model.make_future_dataframe(periods=12 * context['pred_hours'], freq='5min')
@@ -47,5 +64,15 @@ class ProphetTemplate(ModelTemplate, ABC):
 
 
 if __name__ == '__main__':
+    load_dotenv()
+    base_url = "https://kando.herokuapp.com"
     p = ProphetTemplate()
-    print('hi')
+    p.do_train(kando_client.client(base_url, os.getenv('KEY'), os.getenv('SECRET')), {
+        "point_id": 1012,
+        "unit_id": "",
+        "start": 1554182371,
+        "end": 1582008447,
+        "prediction_param": "EC",
+        "model_id": "ABC"
+    })
+    save_model(p)

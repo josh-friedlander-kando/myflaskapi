@@ -1,0 +1,23 @@
+clusterId: cljdd692n
+command: python ml_models/prophet_model.py
+container: lordgrenville/kando_gradient:latest
+experimentEnv:
+    POINT: 10
+    TIME_SLICE: 40
+machineType: c5.xlarge
+modelPath: /artifacts
+modelType: Custom
+name: josh_experiment_1
+projectId: pr8s6cutt
+registryPassword: null
+registryUrl: null
+registryUsername: null
+tag: prophet
+tensorboard: false
+tensorboard_set: null
+workspace: .
+workspaceArchive: null
+workspacePassword: null
+workspaceRef: null
+workspaceUrl: null
+workspaceUsername: null

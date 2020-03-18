@@ -3,7 +3,7 @@ from abc import ABC
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
-from .model_template import ModelTemplate
+from model_template import ModelTemplate
 
 
 class LinRegTemplate(ModelTemplate, ABC):
