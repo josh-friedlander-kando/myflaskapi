@@ -1,5 +1,6 @@
 import os
 import pickle
+import argparse
 from abc import ABC
 from dotenv import load_dotenv
 from kando import kando_client
@@ -11,6 +12,13 @@ from fbprophet.diagnostics import performance_metrics, cross_validation
 from model_template import ModelTemplate
 
 export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd()))
+
+# parser = argparse.ArgumentParser(description='arguments for training')
+# parser.add_argument('point_id', type=int)
+# parser.add_argument('start', type=int, help='beginning of data in Unix time')
+# parser.add_argument('end', type=int, help='end of data in Unix time')
+# parser.add_argument('prediction_param', type=str, help='which parameter to predict')
+# args = parser.parse_args()
 
 
 def fetch_and_process_data(client, context):
@@ -31,7 +39,7 @@ def fetch_and_process_data(client, context):
 def save_model(model):
     print('saving model')
     model.model.stan_backend.logger = None  # https://github.com/facebook/prophet/issues/1361 (!!)
-    with open(export_dir + '/model.pkl', 'wb+') as f:
+    with open(export_dir + f'/model_{os.getenv("POINT_ID")}_{os.getenv("PREDICTION_PARAM")}.pkl', 'wb+') as f:
         pickle.dump(model, f)
 
 
@@ -66,13 +74,13 @@ class ProphetTemplate(ModelTemplate, ABC):
 if __name__ == '__main__':
     load_dotenv()
     base_url = "https://kando.herokuapp.com"
+    client_ = kando_client.client(base_url, os.getenv('KEY'), os.getenv('SECRET'))
+
     p = ProphetTemplate()
-    p.do_train(kando_client.client(base_url, os.getenv('KEY'), os.getenv('SECRET')), {
-        "point_id": 1012,
-        "unit_id": "",
-        "start": 1554182371,
-        "end": 1582008447,
-        "prediction_param": "EC",
-        "model_id": "ABC"
+    p.do_train(client_, {
+        "point_id": os.getenv('POINT_ID', 1012),
+        "start": os.getenv('START', 1554182371),
+        "end": os.getenv('END', 1582008447),
+        "prediction_param": os.getenv('PREDICTION_PARAM', 'EC')
     })
     save_model(p)

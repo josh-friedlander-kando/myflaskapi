@@ -1,9 +1,11 @@
 clusterId: cljdd692n
-command: python ml_models/prophet_model.py
-container: lordgrenville/kando_gradient:latest
+command: python prophet_model.py
+container: kandoenv/training:latest
 experimentEnv:
-    POINT: 10
-    TIME_SLICE: 40
+    POINT_ID: 1012
+    START: 1554182371
+    END: 1582008447
+    PREDICTION_PARAM: EC
 machineType: c5.xlarge
 modelPath: /artifacts
 modelType: Custom

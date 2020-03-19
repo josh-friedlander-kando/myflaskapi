@@ -1,4 +1,4 @@
 flask
 .idea
 __pycache__
-.env
+ml_models/.env
