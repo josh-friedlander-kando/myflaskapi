@@ -2,7 +2,13 @@ clusterId: cljdd692n
 command: python prophet_model.py
 container: kandoenv/training:latest
 experimentEnv:
-    POINT_ID: 1012
+    POINT_IDS:
+        - 1012
+        - 3226
+        - 3256
+        - 3436
+        - 3668
+        - 5058
     START: 1554182371
     END: 1582008447
     PREDICTION_PARAM: EC
