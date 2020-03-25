@@ -16,5 +16,7 @@ Once you train a model, you want to save it in a location where you can find it 
 
 which will get you either the environment variable of `PS_MODEL_PATH` or your local directory. You can define the path in the `config.yaml` file.
 
-Once the model is uploaded to Gradient, you can **deploy** it. The best way to do this is with a custom deployment - we use a Flask container. After creating it, you should make a Dockerfile, run Docker build (potentially Docker run locally first to test it works), and Docker push it. 
+Once the model is uploaded to Gradient, you can **deploy** it. The best way to do this is with a custom deployment - we use a Flask container. After creating it, you should make a Dockerfile, run Docker build (potentially Docker run locally first to test it works), and Docker push it.
+
+Then you can deploy based on oyur current code or a Git workspace (if you don't give a url for the workspace, your current code is zipped and uploaded as you deploy), so you can make changes and iterate very quickly. 
 
