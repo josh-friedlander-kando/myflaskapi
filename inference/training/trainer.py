@@ -29,7 +29,7 @@ if __name__ == '__main__':
     client_ = kando_client.client(base_url, os.getenv('KEY'), os.getenv('SECRET'))
     gradient_client = sdk_client.SdkClient(os.getenv('APIKEY'))
 
-    model = XGBoostTemplate
+    model = XGBoostTemplate  # TODO parametrize this
     # model = ProphetTemplate
     m = model()
     point_ids = os.getenv("POINT_IDS", [1012])
