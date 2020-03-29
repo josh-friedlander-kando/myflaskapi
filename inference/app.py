@@ -16,7 +16,7 @@ def predict():
     context = request.get_json()
     with open(context["model_address"] + context["model_name"] + '.pkl', 'rb') as f:
         model = pickle.load(f)
-    pred = model.do_predict(context)
+    pred = model.predict(context)
     if isinstance(pred, list):
         return jsonify(pred)
     return pred

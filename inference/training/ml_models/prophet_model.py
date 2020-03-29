@@ -7,12 +7,12 @@ from fbprophet.diagnostics import performance_metrics, cross_validation
 from model_template import ModelTemplate
 
 
-def fetch_and_process_data(client, context):
-    prediction_param = context['prediction_param']
-    client_context = {k: v for k, v in context.items() if k in ['point_id', 'start', 'end']}
+def fetch_and_process_data(client, **kwargs):
+    prediction_param = kwargs['prediction_param']
+    client_context = {k: v for k, v in kwargs.items() if k in ['point_id', 'start', 'end']}
     data = client.get_all(**client_context)
     if len(data['samplings']) == 0:
-        print(f'No data found at point {context["point_id"]}')
+        print(f'No data found at point {kwargs["point_id"]}')
         return None
     # TODO if model not fit bc of missing data, pass this on to predict method
     df = pd.DataFrame(data['samplings']).T[[prediction_param]]
@@ -26,18 +26,19 @@ class ProphetTemplate(ModelTemplate, ABC):
     def __init__(self):
         super().__init__()
         self.model = Prophet(yearly_seasonality=False, weekly_seasonality=True, daily_seasonality=True)
+        self.model.stan_backend.logger = None  # https://github.com/facebook/prophet/issues/1361 (!!)
         self.df_cv = None
 
-    def do_train(self, client, context):
-        data = fetch_and_process_data(client, context)
+    def do_train(self, client, **kwargs):
+        data = fetch_and_process_data(client, **kwargs)
         if data is not None:
             self.model.fit(data)
             print('finished fitting model')
 
-    def save_metadata(self):
+    def do_save_metadata(self):
         self.df_cv = cross_validation(self.model, period='180 days', initial='112 days', horizon='12H')
         metadata = performance_metrics(self.df_cv)
-        export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '/../models'))
+        export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '../../../models'))
         metadata.to_json(export_dir + '/gradient-model-metadata.json')
 
     def do_predict(self, context):
