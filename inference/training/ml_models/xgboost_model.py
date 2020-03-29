@@ -45,7 +45,7 @@ class XGBoostTemplate(ModelTemplate, ABC):
         self.y_pred = self.xgbr.predict(self.X_test)
         self.metadata['mse'] = mean_squared_error(self.y_test, self.y_pred)
         self.metadata['rmse'] = np.sqrt(mean_squared_error(self.y_test, self.y_pred))
-        export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '/../../models'))
+        export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '/../models'))
         with open(export_dir + '/gradient-model-metadata.json', 'w') as f:
             json.dump(self.metadata, f)
 

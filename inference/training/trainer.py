@@ -14,7 +14,7 @@ def save_and_upload_model(model, name, gradi_client=None):
         model.model.stan_backend.logger = None  # https://github.com/facebook/prophet/issues/1361 (!!)
     except AttributeError:
         pass
-    export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '/../../models'))
+    export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '/../models'))
     path = export_dir + '/' + name + '.pkl'
     with open(path, 'wb+') as f:
         pickle.dump(model, f)
@@ -29,18 +29,22 @@ if __name__ == '__main__':
     client_ = kando_client.client(base_url, os.getenv('KEY'), os.getenv('SECRET'))
     gradient_client = sdk_client.SdkClient(os.getenv('APIKEY'))
 
-    model = XGBoostTemplate  # TODO parametrize this
-    # model = ProphetTemplate
-    m = model()
+    my_model = XGBoostTemplate  # TODO parametrize this
+    # my_model = ProphetTemplate
+    # my_model = model3
+    m = my_model()
     point_ids = os.getenv("POINT_IDS", [1012])
+
+    m.train(*args)
+
     for point in point_ids:
-        m.do_train(client_, {
+        m.train(client_, {
             "point_id": point,
             "start": os.getenv('START', 1554182371),
             "end": os.getenv('END', 1582008447),
             "prediction_param": os.getenv('PREDICTION_PARAM', 'EC')
         })
         m.save_metadata()
-        name = f'model_{point}_{os.getenv("PREDICTION_PARAM", "no_param")}'
-        name = f'model_predict_COD'
-        save_and_upload_model(m, name, gradient_client)
+        model_name = f'model_{point}_{os.getenv("PREDICTION_PARAM", "EC")}'
+        # model_name = f'model_predict_COD'
+        save_and_upload_model(m, model_name, gradient_client)

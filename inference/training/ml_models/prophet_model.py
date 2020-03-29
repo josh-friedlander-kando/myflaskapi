@@ -33,11 +33,11 @@ class ProphetTemplate(ModelTemplate, ABC):
         if data is not None:
             self.model.fit(data)
             print('finished fitting model')
-        self.df_cv = cross_validation(self.model, period='180 days', initial='112 days', horizon='12H')
 
     def save_metadata(self):
+        self.df_cv = cross_validation(self.model, period='180 days', initial='112 days', horizon='12H')
         metadata = performance_metrics(self.df_cv)
-        export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '/../../models'))
+        export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '/../models'))
         metadata.to_json(export_dir + '/gradient-model-metadata.json')
 
     def do_predict(self, context):

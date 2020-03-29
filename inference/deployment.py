@@ -7,8 +7,8 @@ from gradient import sdk_client
 load_dotenv()
 client = sdk_client.SdkClient(os.getenv('APIKEY'))
 deploy_param = {
-    "name": "deploy_25_3",
-    "model_id": "mosjclv7k2se3pz",
+    "name": "xgboost_model_deployment",
+    "model_id": "mozz3f5i9x1k5a",
     "deployment_type": "Custom",
     "image_url": "kandoenv/inference:latest",
     "ports": 3000,
@@ -19,7 +19,6 @@ deploy_param = {
     "method": "/",
     "auth_username": os.getenv('AUTH_USERNAME'),
     "auth_password": os.getenv('AUTH_PASSWORD'),
-    # "docker_args": ["python", "/code/app_xgboost.py"]
 }
 deployment_id = client.deployments.create(**deploy_param)
 time.sleep(5)
