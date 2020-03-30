@@ -5,9 +5,6 @@ from importlib import import_module
 
 from dotenv import load_dotenv
 from gradient import sdk_client
-from kando import kando_client
-
-export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '../../../models'))
 
 
 def save_model(model, path):
@@ -16,17 +13,14 @@ def save_model(model, path):
     print(f'Model saved locally at {path}')
 
 
-def upload_model(path, name, gradi_client=None):
-    _ = gradi_client.models.upload(path, name, 'Custom')
+def upload_model(path, name):
+    load_dotenv()
+    gradient_client = sdk_client.SdkClient(os.getenv('APIKEY'))
+    _ = gradient_client.models.upload(path, name, 'Custom')
     print(f'Successfully uploaded model ID {_}')
 
 
 if __name__ == '__main__':
-    load_dotenv()
-    base_url = "https://kando.herokuapp.com"
-    client_ = kando_client.client(base_url, os.getenv('KEY'), os.getenv('SECRET'))
-    gradient_client = sdk_client.SdkClient(os.getenv('APIKEY'))
-
     parser = argparse.ArgumentParser()
     parser.add_argument("environment", nargs="?", default="local",
                         help="if working locally or in gradient. if gradient, upload model + metadata")
@@ -47,10 +41,11 @@ if __name__ == '__main__':
     my_model = getattr(model_module, model_class)
 
     m = my_model()
-    m.train(client_, **model_args)
+    m.train(**model_args)
     model_name = args.model + '_' + '_'.join([str(x) for x in model_args.values()])
+    export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '../../../models'))
     model_path = export_dir + '/' + model_name + '.pkl'
     save_model(m, model_path)
     if args.environment != "local":
         m.save_metadata()
-    #     upload_model(model_path, model_name, gradient_client)
+        upload_model(model_path, model_name)

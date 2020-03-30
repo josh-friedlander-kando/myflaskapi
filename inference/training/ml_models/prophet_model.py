@@ -1,24 +1,17 @@
-import os
 from abc import ABC
 import pandas as pd
 from fbprophet import Prophet
 from fbprophet.diagnostics import performance_metrics, cross_validation
 
-from model_template import ModelTemplate
+from model_template import ModelTemplate, fetch_data
 
 
-def fetch_and_process_data(client, **kwargs):
+def process_data(**kwargs):
     prediction_param = kwargs['prediction_param']
-    client_context = {k: v for k, v in kwargs.items() if k in ['point_id', 'start', 'end']}
-    data = client.get_all(**client_context)
-    if len(data['samplings']) == 0:
-        print(f'No data found at point {kwargs["point_id"]}')
-        return None
-    # TODO if model not fit bc of missing data, pass this on to predict method
+    data = fetch_data(kwargs["point_id"], kwargs["start"], kwargs["end"])
     df = pd.DataFrame(data['samplings']).T[[prediction_param]]
     df.index = pd.to_datetime(df.index, unit='s')
     df = df.sort_index().astype(float)
-    print('finished processing data successfully')
     return df.reset_index().rename(columns={'index': 'ds', prediction_param: 'y'}).copy()
 
 
@@ -27,19 +20,17 @@ class ProphetTemplate(ModelTemplate, ABC):
         super().__init__()
         self.model = Prophet(yearly_seasonality=False, weekly_seasonality=True, daily_seasonality=True)
         self.model.stan_backend.logger = None  # https://github.com/facebook/prophet/issues/1361 (!!)
-        self.df_cv = None
 
-    def do_train(self, client, **kwargs):
-        data = fetch_and_process_data(client, **kwargs)
+    def do_train(self, **kwargs):
+        data = process_data(**kwargs)
         if data is not None:
             self.model.fit(data)
             print('finished fitting model')
 
-    def do_save_metadata(self):
-        self.df_cv = cross_validation(self.model, period='180 days', initial='112 days', horizon='12H')
-        metadata = performance_metrics(self.df_cv)
-        export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '../../../models'))
-        metadata.to_json(export_dir + '/gradient-model-metadata.json')
+    def get_metadata(self):
+        df_cv = cross_validation(self.model, period='180 days', initial='112 days', horizon='12H')
+        metadata = performance_metrics(df_cv)
+        return metadata.to_json()
 
     def do_predict(self, context):
         future = self.model.make_future_dataframe(periods=12 * context['pred_hours'], freq='5min')
