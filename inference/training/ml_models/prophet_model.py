@@ -7,7 +7,7 @@ from model_template import ModelTemplate, fetch_data
 
 
 def process_data(**kwargs):
-    prediction_param = kwargs['prediction_param']
+    prediction_param = kwargs['baseline_param']
     data = fetch_data(kwargs["point_id"], kwargs["start"], kwargs["end"])
     df = pd.DataFrame(data['samplings']).T[[prediction_param]]
     df.index = pd.to_datetime(df.index, unit='s')
@@ -33,10 +33,10 @@ class ProphetTemplate(ModelTemplate, ABC):
         return metadata.to_json()
 
     def do_predict(self, context):
-        future = self.model.make_future_dataframe(periods=12 * context['pred_hours'], freq='5min')
+        future = self.model.make_future_dataframe(periods=4 * context['baseline_hours'], freq='15min')  # TODO paramtrize this
         forecast = self.model.predict(future)
         print('finished prediction')
-        if context['pred_only']:
+        if context['baseline_only']:
             return forecast[['yhat']].to_dict()
 
         const_2, const_3 = 1.5, 2
