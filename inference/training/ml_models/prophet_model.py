@@ -37,10 +37,10 @@ class ProphetTemplate(ModelTemplate, ABC):
         forecast = self.model.predict(future)
         print('finished prediction')
         if context['baseline_only']:
-            return forecast[['yhat']].to_dict()
+            return forecast[['yhat']].to_json()
 
         const_2, const_3 = 1.5, 2
         forecast = forecast.rename(columns={'yhat_upper': 'H1', 'yhat_lower': 'L1'}).copy()
         forecast['H2'], forecast['H3'] = const_2 * forecast['H1'], const_3 * forecast['H1']
         forecast['L2'], forecast['L3'] = const_2 * forecast['L1'], const_3 * forecast['L1']
-        return forecast[['yhat', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3']].to_dict()
+        return forecast[['yhat', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3']].to_json()

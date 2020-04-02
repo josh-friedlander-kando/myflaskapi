@@ -12,14 +12,14 @@ experiment_param = {
     "machine_type": "c5.xlarge",
     "cluster_id": "cljdd692n",
     # "workspace_url": "https://github.com/kando-env/flask_api/",
-    # "workspace_ref": "master",
     # "workspace_username": os.getenv('GIT_USERNAME'),
     # "workspace_password": os.getenv('GIT_PASSWORD'),
 }
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", help="which command to use")
+    parser.add_argument("command", help="which command to use", default=
+                        "python inference/training/trainer.py cloud xgboost_cod --point_id 1012 --start 1554182371 --end 1582008447")
     args = parser.parse_args()
     experiment_param['command'] = args.command
     print(client.experiments.run_single_node(**experiment_param))

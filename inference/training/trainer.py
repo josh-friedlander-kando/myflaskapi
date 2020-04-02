@@ -1,10 +1,12 @@
-import argparse
 import os
 import pickle
 from importlib import import_module
 
 from dotenv import load_dotenv
+from flask import Flask, request
 from gradient import sdk_client
+
+app = Flask(__name__)
 
 
 def save_model(model, path):
@@ -18,44 +20,45 @@ def upload_model(path, name):
     gradient_client = sdk_client.SdkClient(os.getenv('APIKEY'))
     _ = gradient_client.models.upload(path, name, 'Custom')
     print(f'Successfully uploaded model ID {_}')
+    return _
 
 
-def main(args):
-    # separate model args into key-value pairs
-    model_args_orig = dict(zip(args.model_args[::2], args.model_args[1::2]))
-    model_args = {}
-    for k, v in model_args_orig.items():
-        try:
-            model_args[k.lstrip('-')] = int(v)
-        except ValueError:
-            model_args[k.lstrip('-')] = v
+def train(context):
+    environment, model = context.pop("environment"), context.pop("model")
+    assert environment in ["cloud", "local"], "environment must be either 'cloud' or 'local'"
 
     # import model module and instantiate it
-    model_module = "ml_models." + args.model + '_model'
-    model_class = args.model.title() + 'Template'
+    model_module = "ml_models." + model + '_model'
+    model_class = model.title() + 'Template'
     model_module = import_module(model_module)
     my_model = getattr(model_module, model_class)
     m = my_model()
-    m.train(**model_args)
+    print(context)
+    m.train(**context)
 
     # save model and potentially upload model + metadata
-    model_name = args.model + '_' + '_'.join([str(x) for x in model_args.values()])
+    model_name = model#+ '_' + '_'.join([str(x) for x in context.values()])  # TODO pick a better naming convention!
     export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '../../../models'))
     if not os.path.isdir(export_dir):
         os.makedirs(export_dir)
     model_path = export_dir + '/' + model_name + '.pkl'
     save_model(m, model_path)
-    assert args.environment in ["cloud", "local"], "environment must be either 'cloud' or 'local'"
-    if args.environment == "cloud":
+    if environment == "cloud":
         m.save_metadata()
-        upload_model(model_path, model_name)
+        return upload_model(model_path, model_name)
+    return model_path
+
+
+@app.route("/train", methods=['POST'])
+def train_model():
+    context = request.get_json()
+    return train(context)
+
+
+@app.route("/", methods=['GET'])
+def health():
+    return 'healthy', 200
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("environment", nargs="?", default="local",
-                        help="if working locally or in gradient. if gradient, upload model + metadata")
-    parser.add_argument("model", help="which model to instantiate")
-    parser.add_argument('model_args', nargs=argparse.REMAINDER, help="all other key-value args for the specific model")
-    args_ = parser.parse_args()
-    main(args_)
+    app.run(debug=False, host='0.0.0.0', port=3000)
