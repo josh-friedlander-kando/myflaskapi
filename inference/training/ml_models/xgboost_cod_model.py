@@ -17,7 +17,7 @@ def process_data(**kwargs):
     return x, y
 
 
-class Xgboost_CodTemplate(ModelTemplate, ABC):
+class XgboostCodTemplate(ModelTemplate, ABC):
     def __init__(self):
         super().__init__()
         self.xgbr = xgb.XGBRegressor()

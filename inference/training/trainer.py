@@ -24,29 +24,23 @@ def upload_model(path, name):
 
 
 def train(context):
-    environment, model = context.pop("environment"), context.pop("model")
-    assert environment in ["cloud", "local"], "environment must be either 'cloud' or 'local'"
-
-    # import model module and instantiate it
+    model = context.pop("model")
     model_module = "ml_models." + model + '_model'
-    model_class = model.title() + 'Template'
+    model_class = model.title().replace('_', '') + 'Template'
     model_module = import_module(model_module)
     my_model = getattr(model_module, model_class)
     m = my_model()
-    print(context)
     m.train(**context)
 
-    # save model and potentially upload model + metadata
-    model_name = model#+ '_' + '_'.join([str(x) for x in context.values()])  # TODO pick a better naming convention!
+    # save model, upload model + metadata
+    model_name = model  # TODO save old models?
     export_dir = os.path.abspath(os.environ.get('PS_MODEL_PATH', os.getcwd() + '../../../models'))
     if not os.path.isdir(export_dir):
         os.makedirs(export_dir)
     model_path = export_dir + '/' + model_name + '.pkl'
     save_model(m, model_path)
-    if environment == "cloud":
-        m.save_metadata()
-        return upload_model(model_path, model_name)
-    return model_path
+    m.save_metadata()
+    return upload_model(model_path, model_name)
 
 
 @app.route("/train", methods=['POST'])

@@ -14,11 +14,14 @@ deploy_param = {
     "machine_type": "c5.xlarge",
     "instance_count": 1,
     "cluster_id": "cljdd692n",
-    "docker_args": ["-it", "-v ${PWD}:/code"],
+    "model_id": "mozz3f5i9x1k5a",
     "container_model_path": "/models",
     "method": "/",
     "auth_username": os.getenv('AUTH_USERNAME'),
     "auth_password": os.getenv('AUTH_PASSWORD'),
+    "image_server": "index.docker.io",
+    "image_username": os.getenv('IMAGE_USERNAME'),
+    "image_password": os.getenv('IMAGE_PASSWORD'),
 }
 deployment_id = client.deployments.create(**deploy_param)
 time.sleep(5)
