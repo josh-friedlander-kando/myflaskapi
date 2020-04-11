@@ -1,4 +1,4 @@
 .idea/
 __pycache__/
-inference/training/.env
+api/training/.env
 models/
