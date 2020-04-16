@@ -7,7 +7,7 @@ from gradient import sdk_client
 load_dotenv()
 client = sdk_client.SdkClient(os.getenv('APIKEY'))
 deploy_param = {
-    "name": "xgboost_model_training_deployment",
+    "name": "generic_model_training_deployment",
     "deployment_type": "Custom",
     "image_url": "kandoenv/training:latest",
     "ports": 3000,
@@ -24,5 +24,5 @@ deploy_param = {
     "image_password": os.getenv('IMAGE_PASSWORD'),
 }
 deployment_id = client.deployments.create(**deploy_param)
-time.sleep(5)
+time.sleep(20)
 client.deployments.start(deployment_id)

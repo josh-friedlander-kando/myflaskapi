@@ -14,7 +14,7 @@ app = Flask(__name__)
 @app.route("/predict", methods=['POST'])
 def predict():
     context = request.get_json()
-    with open(context["model_address"] + context["model_name"] + '.pkl', 'rb') as f:
+    with open(context.get("model_path", "models/") + context["model"] + '.pkl', 'rb') as f:
         model = pickle.load(f)
     pred = model.predict(context)
     if isinstance(pred, list):

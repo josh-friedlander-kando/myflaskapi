@@ -1,14 +1,19 @@
 import os
 import time
+import argparse
 
 from dotenv import load_dotenv
 from gradient import sdk_client
+
+parser = argparse.ArgumentParser()
+parser.add_argument('model', help='Gradient ID for model to be deployed')
+args = parser.parse_args()
 
 load_dotenv()
 client = sdk_client.SdkClient(os.getenv('APIKEY'))
 deploy_param = {
     "name": "xgboost_model_deployment",
-    "model_id": "mozz3f5i9x1k5a",
+    "model_id": args.model,
     "deployment_type": "Custom",
     "image_url": "kandoenv/inference:latest",
     "ports": 3000,
